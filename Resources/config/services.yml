@@ -1,0 +1,42 @@
+services:
+    gorgo_email_debug.command.email_template:
+        class: '\Gorgo\Bundle\EmailDebugBundle\Command\DebugEmailTemplateCommand'
+        arguments:
+            - '@oro_entity.doctrine_helper'
+        tags:
+            - { name: console.command }
+
+    gorgo_email_debug.command.email_template_compile:
+        class: '\Gorgo\Bundle\EmailDebugBundle\Command\DebugEmailTemplateCompileCommand'
+        arguments:
+            - '@oro_email.mailer.processor'
+            - '@oro_email.email_renderer'
+            - '@oro_entity.doctrine_helper'
+        tags:
+            - { name: console.command }
+
+    gorgo_email_debug.command.email_variables:
+        class: '\Gorgo\Bundle\EmailDebugBundle\Command\DebugEmailVariablesCommand'
+        arguments:
+            - '@oro_email.email_renderer'
+            - '@oro_email.emailtemplate.variable_provider'
+            - '@oro_entity.doctrine_helper'
+        tags:
+            - { name: console.command }
+
+
+    gorgo_email_debug.command.email_tempalte_export:
+        class: '\Gorgo\Bundle\EmailDebugBundle\Command\EmailTemplatesExportCommand'
+        arguments:
+            - '@kernel'
+            - '@oro_entity.doctrine_helper'
+        tags:
+            - { name: console.command }
+
+    gorgo_email_debug.command.email_tempalte_import:
+        class: '\Gorgo\Bundle\EmailDebugBundle\Command\EmailTemplatesImportCommand'
+        arguments:
+            - '@kernel'
+            - '@oro_entity.doctrine_helper'
+        tags:
+            - { name: console.command }

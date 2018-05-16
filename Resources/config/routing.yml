@@ -1,0 +1,3 @@
+gorgo_email_debug_homepage:
+    path:     /
+    defaults: { _controller: GorgoEmailDebugBundle:Default:index }
