@@ -5,29 +5,15 @@ namespace Gorgo\Bundle\EmailDebugBundle\Command;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
 use Oro\Bundle\EmailBundle\Entity\Repository\EmailTemplateRepository;
-use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class DebugEmailTemplateCommand extends Command
+class DebugEmailTemplateCommand extends ContainerAwareCommand
 {
     const NAME = 'gorgo:debug:email:template';
-
-    /** @var DoctrineHelper */
-    protected $doctrineHelper;
-
-    /**
-     * @inheritDoc
-     */
-    public function __construct(DoctrineHelper $doctrineHelper)
-    {
-        parent::__construct(self::NAME);
-
-        $this->doctrineHelper = $doctrineHelper;
-    }
 
     /**
      * {@inheritDoc}
@@ -129,7 +115,8 @@ class DebugEmailTemplateCommand extends Command
      */
     private function getRepository()
     {
-        return $this->doctrineHelper->getEntityRepositoryForClass(EmailTemplate::class);
+        return $this->getContainer()->get('oro_entity.doctrine_helper')
+            ->getEntityRepositoryForClass(EmailTemplate::class);
     }
 
     /**

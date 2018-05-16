@@ -7,42 +7,15 @@ use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
 use Oro\Bundle\EmailBundle\Entity\Repository\EmailTemplateRepository;
 use Oro\Bundle\EmailBundle\Mailer\Processor;
 use Oro\Bundle\EmailBundle\Provider\EmailRenderer;
-use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
-class DebugEmailTemplateCompileCommand extends Command
+class DebugEmailTemplateCompileCommand extends ContainerAwareCommand
 {
     const NAME = 'gorgo:debug:email:template:compile';
-
-    /** @var Processor */
-    protected $mailerProcessor;
-
-    /** @var EmailRenderer */
-    protected $emailRenderer;
-
-    /** @var DoctrineHelper */
-    protected $doctrineHelper;
-
-    /**
-     * @param Processor $mailerProcessor
-     * @param EmailRenderer $emailRenderer
-     * @param DoctrineHelper $doctrineHelper
-     */
-    public function __construct(
-        Processor $mailerProcessor,
-        EmailRenderer $emailRenderer,
-        DoctrineHelper $doctrineHelper
-    ) {
-        parent::__construct(self::NAME);
-
-        $this->mailerProcessor = $mailerProcessor;
-        $this->emailRenderer = $emailRenderer;
-        $this->doctrineHelper = $doctrineHelper;
-    }
 
     /**
      * {@internaldoc}
@@ -126,7 +99,8 @@ class DebugEmailTemplateCompileCommand extends Command
      */
     private function getRepository()
     {
-        return $this->doctrineHelper->getEntityRepositoryForClass(EmailTemplate::class);
+        return $this->getContainer()->get('oro_entity.doctrine_helper')
+            ->getEntityRepositoryForClass(EmailTemplate::class);
     }
 
     /**
@@ -134,7 +108,7 @@ class DebugEmailTemplateCompileCommand extends Command
      */
     private function getMailer()
     {
-        return $this->mailerProcessor;
+        return $this->getContainer()->get('oro_email.mailer.processor');
     }
 
     /**
@@ -142,7 +116,7 @@ class DebugEmailTemplateCompileCommand extends Command
      */
     private function getEmailRenderer()
     {
-        return $this->emailRenderer;
+        return $this->getContainer()->get('oro_email.email_renderer');
     }
 
     /**
@@ -167,9 +141,11 @@ class DebugEmailTemplateCompileCommand extends Command
      */
     private function getEntity($entityClass, $entityId = null)
     {
-        $entity = $this->doctrineHelper->createEntityInstance($entityClass);
+        $entity = $this->getContainer()->get('oro_entity.doctrine_helper')->createEntityInstance($entityClass);
         if ($entityId) {
-            $entity = $this->doctrineHelper->getEntity($entityClass, $entityId) ?: $entity;
+            $entity = $this->getContainer()
+                ->get('oro_entity.doctrine_helper')
+                ->getEntity($entityClass, $entityId) ?: $entity;
         }
 
         return $entity;

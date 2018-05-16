@@ -5,41 +5,15 @@ namespace Gorgo\Bundle\EmailDebugBundle\Command;
 use Oro\Bundle\EmailBundle\Provider\EmailRenderer;
 use Oro\Bundle\EmailBundle\Provider\VariablesProvider;
 use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class DebugEmailVariablesCommand extends Command
+class DebugEmailVariablesCommand extends ContainerAwareCommand
 {
     const NAME = 'gorgo:debug:email:variable';
-
-    /** @var EmailRenderer */
-    protected $emailRenderer;
-
-    /** @var VariablesProvider */
-    protected $variablesProvider;
-
-    /** @var DoctrineHelper */
-    protected $doctrineHelper;
-
-    /**
-     * @param EmailRenderer $emailRenderer
-     * @param VariablesProvider $variablesProvider
-     * @param DoctrineHelper $doctrineHelper
-     */
-    public function __construct(
-        EmailRenderer $emailRenderer,
-        VariablesProvider $variablesProvider,
-        DoctrineHelper $doctrineHelper
-    ) {
-        parent::__construct(self::NAME);
-
-        $this->emailRenderer = $emailRenderer;
-        $this->variablesProvider = $variablesProvider;
-        $this->doctrineHelper = $doctrineHelper;
-    }
 
     /**
      * {@internaldoc}
@@ -112,7 +86,7 @@ class DebugEmailVariablesCommand extends Command
      */
     private function getEmailRenderer()
     {
-        return $this->emailRenderer;
+        return $this->getContainer()->get('oro_email.email_renderer');
     }
 
     /**
@@ -171,7 +145,7 @@ class DebugEmailVariablesCommand extends Command
     private function getEntity($entityClass, $entityId = null)
     {
         /** @var DoctrineHelper $dh */
-        $dh = $this->doctrineHelper;
+        $dh = $this->getContainer()->get('oro_entity.doctrine_helper');
         $entity = $dh->createEntityInstance($entityClass);
         if ($entityId) {
             $entity = $dh->getEntity($entityClass, $entityId) ?: $entity;
@@ -187,14 +161,14 @@ class DebugEmailVariablesCommand extends Command
      */
     private function getEntityClass($entityClass = null)
     {
-        return $this->doctrineHelper->getEntityClass($entityClass);
+        return $dh = $this->getContainer()->get('oro_entity.doctrine_helper')->getEntityClass($entityClass);
     }
 
     /**
-     * @return object|VariablesProvider
+     * @return VariablesProvider
      */
     private function getVariableProvider()
     {
-        return $this->variablesProvider;
+        return $this->getContainer()->get('oro_email.emailtemplate.variable_provider');
     }
 }

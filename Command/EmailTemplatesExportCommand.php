@@ -3,17 +3,15 @@
 namespace Gorgo\Bundle\EmailDebugBundle\Command;
 
 use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
-use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\UserBundle\Entity\User;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
 
-class EmailTemplatesExportCommand extends Command
+class EmailTemplatesExportCommand extends ContainerAwareCommand
 {
     const NAME = 'gorgo:email:template:export';
 
@@ -22,24 +20,6 @@ class EmailTemplatesExportCommand extends Command
 
     /** @var Organization */
     protected $organization;
-
-    /** @var KernelInterface */
-    protected $kernel;
-
-    /** @var DoctrineHelper */
-    protected $doctrineHelper;
-
-    /**
-     * @param KernelInterface $kernel
-     * @param DoctrineHelper $doctrineHelper
-     */
-    public function __construct(KernelInterface $kernel, DoctrineHelper $doctrineHelper)
-    {
-        parent::__construct(self::NAME);
-
-        $this->kernel = $kernel;
-        $this->doctrineHelper = $doctrineHelper;
-    }
 
     /**
      * {@inheritdoc}
@@ -60,7 +40,7 @@ class EmailTemplatesExportCommand extends Command
     {
         $destination = $input->getArgument('destination');
         try {
-            $destination = $this->kernel->locateResource($destination);
+            $destination = $this->getContainer()->get('kernel')->locateResource($destination);
         } catch (\InvalidArgumentException $e) {
         }
 
@@ -112,6 +92,8 @@ class EmailTemplatesExportCommand extends Command
             $criterion = ['name' => $templateName];
         }
 
-        return $this->doctrineHelper->getEntityRepositoryForClass(EmailTemplate::class)->findBy($criterion);
+        return $this->getContainer()->get('oro_entity.doctrine_helper')
+            ->getEntityRepositoryForClass(EmailTemplate::class)
+            ->findBy($criterion);
     }
 }

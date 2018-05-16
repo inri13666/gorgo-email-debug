@@ -6,22 +6,20 @@ use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityManager;
 use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
 use Oro\Bundle\EmailBundle\Entity\Repository\EmailTemplateRepository;
-use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\OrganizationBundle\Entity\Repository\OrganizationRepository;
 use Oro\Bundle\UserBundle\Entity\Repository\RoleRepository;
 use Oro\Bundle\UserBundle\Entity\Role;
 use Oro\Bundle\UserBundle\Entity\User;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\HttpKernel\KernelInterface;
 
-class EmailTemplatesImportCommand extends Command
+class EmailTemplatesImportCommand extends ContainerAwareCommand
 {
     const NAME = 'gorgo:email:template:import';
 
@@ -30,24 +28,6 @@ class EmailTemplatesImportCommand extends Command
 
     /** @var Organization */
     protected $organization;
-
-    /** @var KernelInterface */
-    protected $kernel;
-
-    /** @var DoctrineHelper */
-    protected $doctrineHelper;
-
-    /**
-     * @param KernelInterface $kernel
-     * @param DoctrineHelper $doctrineHelper
-     */
-    public function __construct(KernelInterface $kernel, DoctrineHelper $doctrineHelper)
-    {
-        parent::__construct(self::NAME);
-
-        $this->kernel = $kernel;
-        $this->doctrineHelper = $doctrineHelper;
-    }
 
     /**
      * {@inheritdoc}
@@ -68,7 +48,7 @@ class EmailTemplatesImportCommand extends Command
     {
         $source = $input->getArgument('source');
         try {
-            $source = $this->kernel->locateResource($source);
+            $source = $this->getContainer()->get('kernel')->locateResource($source);
         } catch (\InvalidArgumentException $e) {
         }
 
@@ -112,7 +92,8 @@ class EmailTemplatesImportCommand extends Command
      */
     private function getEmailTemplateRepository()
     {
-        return $this->doctrineHelper->getEntityRepositoryForClass(EmailTemplate::class);
+        return $this->getContainer()->get('oro_entity.doctrine_helper')
+            ->getEntityRepositoryForClass(EmailTemplate::class);
     }
 
     /**
@@ -154,7 +135,7 @@ class EmailTemplatesImportCommand extends Command
      */
     private function getEmailTemplatesManager()
     {
-        return $this->doctrineHelper->getEntityManagerForClass(EmailTemplate::class);
+        return $this->getContainer()->get('oro_entity.doctrine_helper')->getEntityManagerForClass(EmailTemplate::class);
     }
 
     /**
@@ -193,7 +174,8 @@ class EmailTemplatesImportCommand extends Command
         }
 
         /** @var OrganizationRepository $repo */
-        $repo = $this->doctrineHelper->getEntityRepositoryForClass(Organization::class);
+        $repo = $this->getContainer()->get('oro_entity.doctrine_helper')
+            ->getEntityRepositoryForClass(Organization::class);
         $this->organization = $repo->getFirst();
 
         return $this->organization;
@@ -213,7 +195,9 @@ class EmailTemplatesImportCommand extends Command
         }
 
         /** @var RoleRepository $repository */
-        $repository = $this->doctrineHelper->getEntityRepositoryForClass(Role::class);
+        $repository = $this->getContainer()
+            ->get('oro_entity.doctrine_helper')
+            ->getEntityRepositoryForClass(Role::class);
         /** @var Role $role */
         $role = $repository->findOneBy(['role' => User::ROLE_ADMINISTRATOR]);
 
