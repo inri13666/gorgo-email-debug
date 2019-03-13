@@ -7,6 +7,7 @@ use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
 use Oro\Bundle\EmailBundle\Entity\Repository\EmailTemplateRepository;
 use Oro\Bundle\EmailBundle\Mailer\Processor;
 use Oro\Bundle\EmailBundle\Provider\EmailRenderer;
+use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -27,7 +28,7 @@ class DebugEmailTemplateCompileCommand extends ContainerAwareCommand
             ->addOption(
                 'template',
                 null,
-                InputOption::VALUE_OPTIONAL,
+                InputOption::VALUE_REQUIRED,
                 'The name of email template to be compiled.'
             )
             ->addOption(
@@ -87,8 +88,12 @@ class DebugEmailTemplateCompileCommand extends ContainerAwareCommand
             $emailMessage->setFrom($input->getOption('recipient'));
             $emailMessage->setTo($input->getOption('recipient'));
 
-            $this->getMailer()->processSend($emailMessage, null);
-            $output->writeln(sprintf('Message successfully send to "%s"', $input->getOption('recipient')));
+            try {
+                $this->getMailer()->processSend($emailMessage, null);
+                $output->writeln(sprintf('Message successfully send to "%s"', $input->getOption('recipient')));
+            } catch (\Swift_SwiftException $e) {
+                $output->writeln(sprintf('Message not sent due error "%s"', $e->getMessage()));
+            }
         }
 
         return 0;
@@ -99,12 +104,11 @@ class DebugEmailTemplateCompileCommand extends ContainerAwareCommand
      */
     private function getRepository()
     {
-        return $this->getContainer()->get('oro_entity.doctrine_helper')
-            ->getEntityRepositoryForClass(EmailTemplate::class);
+        return $this->getDoctrineHelper()->getEntityRepositoryForClass(EmailTemplate::class);
     }
 
     /**
-     * @return object|Processor
+     * @return Processor
      */
     private function getMailer()
     {
@@ -112,11 +116,19 @@ class DebugEmailTemplateCompileCommand extends ContainerAwareCommand
     }
 
     /**
-     * @return object|EmailRenderer
+     * @return EmailRenderer
      */
     private function getEmailRenderer()
     {
         return $this->getContainer()->get('oro_email.email_renderer');
+    }
+
+    /**
+     * @return DoctrineHelper
+     */
+    private function getDoctrineHelper()
+    {
+        return $this->getContainer()->get('oro_entity.doctrine_helper');
     }
 
     /**
@@ -141,11 +153,9 @@ class DebugEmailTemplateCompileCommand extends ContainerAwareCommand
      */
     private function getEntity($entityClass, $entityId = null)
     {
-        $entity = $this->getContainer()->get('oro_entity.doctrine_helper')->createEntityInstance($entityClass);
+        $entity = $this->getDoctrineHelper()->createEntityInstance($entityClass);
         if ($entityId) {
-            $entity = $this->getContainer()
-                ->get('oro_entity.doctrine_helper')
-                ->getEntity($entityClass, $entityId) ?: $entity;
+            $entity = $this->getDoctrineHelper()->getEntity($entityClass, $entityId) ?: $entity;
         }
 
         return $entity;

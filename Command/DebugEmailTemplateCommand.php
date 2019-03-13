@@ -111,7 +111,7 @@ class DebugEmailTemplateCommand extends ContainerAwareCommand
     }
 
     /**
-     * @return ObjectRepository|EmailTemplateRepository
+     * @return EmailTemplateRepository
      */
     private function getRepository()
     {

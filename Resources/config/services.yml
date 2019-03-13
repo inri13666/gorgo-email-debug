@@ -1,6 +1,0 @@
-services:
-#    gorgo_email_debug.twig.email_security_policy:
-#        class: \Gorgo\Bundle\EmailDebugBundle\Twig\Sandbox\SecurityPolicy\EmailTemplatesSecurityPolicy
-#        decorates: 'oro_email.twig.email_security_policy'
-#        parent: 'oro_email.twig.email_security_policy'
-#        decoration_priority: 256
